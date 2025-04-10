@@ -11,26 +11,139 @@ int lab1_main(void) {
     with hardware register access. */
     //RCC-> AHBENR |=  (1 << 19);
     //RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; // Enable peripheral clock to TIMER2
-    __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
+    // __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the GPIOC clock in the RCC
+    // __HAL_RCC_GPIOA_CLK_ENABLE();
     // Set up a configuration struct to pass to the initialization function
-    GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9,
-                                GPIO_MODE_OUTPUT_PP,
-                                GPIO_SPEED_FREQ_LOW,
-                                GPIO_NOPULL};
-    // HAL_GPIO_Init(GPIOC, &initStr); // Initialize pins PC8 & PC9
-    My_HAL_GPIO_Init(GPIOC, &initStr); // Initialize pins PC8 & PC9
-
-   // HAL_GPIO_WritePin(GPIOC, 1 << 8 ); // Start PC8 high
-    My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // Start PC8 high
-    //My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+//     GPIO_InitTypeDef initStr = {GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_6 | GPIO_PIN_7,
+//                                 GPIO_MODE_OUTPUT_PP,
+//                                 GPIO_SPEED_FREQ_LOW,
+//                                 GPIO_NOPULL};
+     //HAL_GPIO_Init(GPIOC, &initStr); // Initialize pins PC8 & PC9
+My_HAL_GPIO_Init(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Initialize pins PC8 & PC9
+//     // My_HAL_GPIO_Init(GPIOA, GPIO_PIN_0);
+//    //HAL_GPIO_WritePin(GPIOC, 1 << 8 ); // Start PC8 high
+ My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET); // Start PC8 high
+//    // My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_7);
+   My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+//     HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+   uint32_t history=0;
+//     // 
     while (1) {
-        HAL_Delay(200); // Delay 200ms
-        // Toggle the output state of both PC8 and PC9
-        My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
 
-        
-          }
+        HAL_Delay(1); // Delay 200ms
+        //read pin with buton
+        int32_t ButtonPress= My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+        //int32_t ButtonPress= 1;
+
+        //add state to history
+        //move history left 
+
+        history = history << 1;
+        //add button press to history
+
+        if (ButtonPress) {
+           history = history | 0x01;
         }
+        //check steady state
+        if (history == 0xFFFFFFFF) {
+            // This code triggers repeatedly when button is steady high!
+        }
+        // check srteady state low
+        else if (history == 0x00000000) {
+            // This code triggers repeatedly when button is steady low!
+        }
+        //check transition state
+        //if so, toggle leds 
+        else if (history == 0x7FFFFFFF) {
+            // This code triggers only once when transitioning to steady high!
+            
+            //My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle LEDs
+            My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7);
+          }
+        //noise state
+
+        else  {
+            //do nothing
+        }
+    }
+
+    return -1;
+}
+
+
+// GPIO_InitTypeDef GPIO_InitStruct = {1};
+//     GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+//     // Configure GPIOA PIN 0 as Input with Pull-Down
+//     GPIO_InitStruct.Pin = GPIO_PIN_0;
+//     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+//     while (1) {
+//         // Check if button at PA0 is pressed
+//         if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+//             HAL_Delay(1); // Debounce delay
+//             if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) { // Check again
+//                 HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle PC6 & PC7
+
+//                 while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET); // Wait for release
+//             }
+//         }
+//     }
+// }
+
+// while (1) {
+//   // Check if button at PA0 is pressed
+//   if (My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+//       HAL_Delay(1); // Debounce delay
+//       if (My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) { // Check again
+//           My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle PC6 & PC7
+
+//           while (My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET); // Wait for release
+//       }
+//   }
+// }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+    //     uint32_t debouncer = 0;
+    //     debouncer = (debouncer << 1); // Always shift every loop iteration
+    //     if(GPIOA->IDR & 0x1) { { // If input signal is set/high
+    //     debouncer |= 0x01; // Set lowest bit of bit-vector
+    //     }
+    //     if (debouncer == 0xFFFFFFFF) {
+    //     // This code triggers repeatedly when button is steady high!
+    //     }
+    //     if (debouncer == 0x00000000) {
+    //     // This code triggers repeatedly when button is steady low!
+    //     }
+    //     if (debouncer == 0x7FFFFFFF) {
+    //     // This code triggers only once when transitioning to steady high!
+        
+    //     My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle PC6 & PC7
+    //     }
+    //     } // Triggers if bit 6 is set
+    // return -1;
+    //     // Toggle the output state of both PC8 and PC9
+    //     //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8 | GPIO_PIN_9);
+    //     My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+    //       }
+    //     }
        // uint32_t debouncer = 0;
 // while(1) {
 
@@ -38,6 +151,19 @@ int lab1_main(void) {
 // //the button is high and not when it bounces low.
 // }
 
+
+//while (1) {
+  //   // Check if button at PA0 is pressed
+  //   if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+  //       HAL_Delay(50); // Debounce delay
+  //       if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) { // Check again
+  //           My_HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Toggle PC6 & PC7
+
+  //           while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET); // Wait for release
+  //       }
+  //   }
+  //           } 
+  //         }
 
 // int lab1_main(void) {
 //   HAL_Init(); // Reset of all peripherals, init the Flash and Systick

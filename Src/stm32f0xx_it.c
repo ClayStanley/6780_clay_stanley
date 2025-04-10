@@ -70,9 +70,21 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
+
+  volatile uint32_t systick_count = 0;
+  
 void SysTick_Handler(void)
 {
     HAL_IncTick();
+    #ifdef LAB2
+    systick_count++;
+    
+    // Toggle the blue LED (PC7) every 200 ms.
+    if (systick_count % 200 == 0)
+    {
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_7);
+    }
+    #endif    
 }
 
 /******************************************************************************/
