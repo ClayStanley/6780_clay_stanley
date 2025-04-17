@@ -105,6 +105,10 @@ void My_HAL_GPIO_TogglePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 
 void configure_SYSCFG_EXTI_PA0(void)
 {
+    //set priority of interrupt
+    HAL_NVIC_SetPriority(EXTI0_1_IRQn, 3, 0);
+    HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
+
         // Enable/unmask interrupt generation on EXTI line 0.
     EXTI->IMR |= (1 << 0);
     
