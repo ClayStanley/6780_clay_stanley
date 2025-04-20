@@ -1,3 +1,146 @@
+#include "stm32f0xx.h"
+#include "hal_gpio.h"   // Assume this header provides your custom HAL functions
+#include "stm32f0xx_hal.h"  // If using HAL_Delay and HAL_Init
+#include <assert.h>
+#include <main.h>
+// 
+
+void GPIO_Init(void) {
+    // Enable GPIOC clock
+    RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+
+    // Set PC8 and PC9 to output mode
+    GPIOC->MODER &= ~((0b11 << (8 * 2)) | (0b11 << (9 * 2)));
+    GPIOC->MODER |= (0b01 << (8 * 2)) | (0b01 << (9 * 2));
+
+    // Set initial state: PC8 ON, PC9 OFF
+    GPIOC->ODR |= (1 << 8);
+    GPIOC->ODR &= ~(1 << 9);
+}
+
+
+void TIM3_GPIO_Init(void)
+{
+    /* 1. Enable clock for GPIOC */
+    RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+    
+    /* 2. Set PC6 and PC7 to Alternate Function mode.
+          Each pin uses two bits in the MODER register.
+          For alternate function mode, set MODER bits = 10.
+    */
+    GPIOC->MODER &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)));  
+    GPIOC->MODER |=  ((2UL << (6 * 2)) | (2UL << (7 * 2)));
+    
+    /* 3. Configure output type as push-pull and set high speed if desired */
+    GPIOC->OTYPER &= ~((1UL << 6) | (1UL << 7));
+    GPIOC->OSPEEDR &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)));
+    GPIOC->OSPEEDR |=  ((3UL << (6 * 2)) | (3UL << (7 * 2)));
+    
+    /* 4. No pull-up, no pull-down (modify if needed) */
+    GPIOC->PUPDR &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)));
+    
+    /* 5. Set the alternate function for PC6 and PC7 to AF1.
+          For pins 0–7, alternate functions are configured in AFRL.
+          Each pin gets 4 bits: 
+          PC6 uses bits [6*4+3:6*4] and PC7 uses bits [7*4+3:7*4].
+    */
+    // GPIOC->AFR[0] &= ~((0xF << (6 * 4)) | (0xF << (7 * 4)));
+    // GPIOC->AFR[0] |=  ((1 << (6 * 4)) | (1 << (7 * 4))); // AF1 for TIM3
+    GPIOC->AFR[0] =  0; // AF1 for TIM3
+
+    //Set alternate function to AF1 for TIM3_CH1 (PC6) and TIM3_CH2 (PC7) (from Table 15)
+   // GPIOC->AFR[0] &= ~((0b1111 << (6 * 4)) | (0b1111 << (7 * 4)));
+    //GPIOC->AFR[0] |= (0b0010 << (6 * 4)) | (0b0010 << (7 * 4)); // AF2 = TIM3
+
+}
+
+
+void TIM2_Init(void) {
+    // Enable TIM2 clock
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+    // Timer base frequency = 8 MHz
+    // Desired update event = 4 Hz
+    // Prescaler = 7999 => Timer clock = 1 kHz
+    // ARR = 249 => 1 kHz / (249 + 1) = 4 Hz
+
+    TIM2->PSC = 7999;    // Prescaler value
+    TIM2->ARR = 249;     // Auto-reload value
+
+    // Enable update interrupt
+    TIM2->DIER |= TIM_DIER_UIE;
+
+    // Clear update interrupt flag
+    TIM2->SR &= ~TIM_SR_UIF;
+
+    // Enable TIM2 interrupt in NVIC
+    NVIC_EnableIRQ(TIM2_IRQn);
+
+    // Enable the counter
+    TIM2->CR1 |= TIM_CR1_CEN;
+}
+
+void TIM2_IRQHandler(void) {
+    // Check if update interrupt flag is set
+    if (TIM2->SR & TIM_SR_UIF) {
+        TIM2->SR &= ~TIM_SR_UIF;  // Clear interrupt flag
+
+        // Toggle PC8 and PC9
+        GPIOC->ODR ^= (1 << 8);
+        GPIOC->ODR ^= (1 << 9);
+    }
+}
+void TIM3_PWM_Init(void) {
+    // Enable TIM3 clock
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+
+    // Configure for 800 Hz PWM: 8 MHz / (PSC + 1) / (ARR + 1) = 800
+    // Choose PSC = 99 => Timer clock = 80 kHz
+    // ARR = 99 => 80 kHz / (99 + 1) = 800 Hz
+    TIM3->PSC = 99;
+    TIM3->ARR = 99;
+
+    // Set PWM Mode: Channel 1 = PWM Mode 2, Channel 2 = PWM Mode 1
+    TIM3->CCMR1 &= ~((0b11 << 0) | (0b111 << 4) | (0b11 << 8) | (0b111 << 12));
+    TIM3->CCMR1 |= (0b00 << 0) | (0b111 << 4);  // CH1 as output, PWM Mode 2
+    TIM3->CCMR1 |= (0b00 << 8) | (0b110 << 12); // CH2 as output, PWM Mode 1
+
+    // Enable output compare preload for both channels
+    TIM3->CCMR1 |= TIM_CCMR1_OC1PE | TIM_CCMR1_OC2PE;
+
+    // Enable output for CH1 and CH2
+    TIM3->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
+
+    // Set duty cycle to 20% of ARR (ARR = 99 => 20% = 20)
+    TIM3->CCR1 = 100;
+    TIM3->CCR2 = 100;
+
+    // Enable the counter to start PWM
+    TIM3->CR1 |= TIM_CR1_CEN;
+    // Do NOT enable the timer yet (CR1.CEN remains 0)
+}
+
+int lab3_main(void) {
+    GPIO_Init(); 
+    TIM3_GPIO_Init();     // Initialize LEDs
+    TIM2_Init();     // Initialize TIM2
+    TIM3_PWM_Init(); // Configure TIM3 for PWM but do not start it yet
+    while (1) {
+        // Main loop does nothing, work done in ISR
+    }
+}
+
+
+
+
+
+   
+
+
+
+
+
+
 // #include "stm32f0xx.h"  // Device header – adjust as needed
 
 // /* 
@@ -6,13 +149,13 @@
 // void TIM3_PWM_Init(void);
 // void TIM3_GPIO_Init(void);
 
-// int main(void)
+// int lab3_main(void)
 // {
 //     /* Initialize GPIO pins for TIM3 PWM outputs (PC6 and PC7) */
 //     TIM3_GPIO_Init();
 
 //     /* Initialize TIM3 for PWM operation */
-//     TIM3_PWM_Init();
+//     //TIM3_PWM_Init();
 
 //     /* Start TIM3 counter */
 //     TIM3->CR1 |= TIM_CR1_CEN;

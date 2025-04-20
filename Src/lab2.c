@@ -7,27 +7,27 @@
 void SystemClock_Config(void);
 
 // Custom function to initialize LED pins (assume LEDs on PC6, PC7, PC8, PC9)
-void LED_Init(void) {
-    // Enable clock for GPIOC.
-    RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+// void LED_Init(void) {
+//     // Enable clock for GPIOC.
+//     RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
     
-    // Configure PC6, PC7, PC8, and PC9 as general-purpose outputs.
-    GPIOC->MODER &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)) | (3UL << (8 * 2)) | (3UL << (9 * 2)));
-    GPIOC->MODER |=  ((1UL << (6 * 2)) | (1UL << (7 * 2)) | (1UL << (8 * 2)) | (1UL << (9 * 2)));
+//     // Configure PC6, PC7, PC8, and PC9 as general-purpose outputs.
+//     GPIOC->MODER &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)) | (3UL << (8 * 2)) | (3UL << (9 * 2)));
+//     GPIOC->MODER |=  ((1UL << (6 * 2)) | (1UL << (7 * 2)) | (1UL << (8 * 2)) | (1UL << (9 * 2)));
     
-    // Configure output type as push-pull (default) and low speed, no pull-up/pull-down.
-    GPIOC->OTYPER &= ~((1UL << 6) | (1UL << 7) | (1UL << 8) | (1UL << 9));
-    GPIOC->OSPEEDR &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)) | (3UL << (8 * 2)) | (3UL << (9 * 2)));
-    GPIOC->PUPDR &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)) | (3UL << (8 * 2)) | (3UL << (9 * 2)));
-     GPIOA->MODER &= ~(3UL << (0 * 2));
+//     // Configure output type as push-pull (default) and low speed, no pull-up/pull-down.
+//     GPIOC->OTYPER &= ~((1UL << 6) | (1UL << 7) | (1UL << 8) | (1UL << 9));
+//     GPIOC->OSPEEDR &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)) | (3UL << (8 * 2)) | (3UL << (9 * 2)));
+//     GPIOC->PUPDR &= ~((3UL << (6 * 2)) | (3UL << (7 * 2)) | (3UL << (8 * 2)) | (3UL << (9 * 2)));
+//      GPIOA->MODER &= ~(3UL << (0 * 2));
     
-    // Set low speed for PA0.
-    GPIOA->OSPEEDR &= ~(3UL << (0 * 2));
+//     // Set low speed for PA0.
+//     GPIOA->OSPEEDR &= ~(3UL << (0 * 2));
     
-    // Enable internal pull-down resistor on PA0 (set PUPDR bits to '10').
-    GPIOA->PUPDR &= ~(3UL << (0 * 2));
-    GPIOA->PUPDR |=  (2UL << (0 * 2));
-}
+//     // Enable internal pull-down resistor on PA0 (set PUPDR bits to '10').
+//     GPIOA->PUPDR &= ~(3UL << (0 * 2));
+//     GPIOA->PUPDR |=  (2UL << (0 * 2));
+// }
 
 
 //TEST Code

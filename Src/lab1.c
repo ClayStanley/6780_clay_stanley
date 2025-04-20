@@ -23,6 +23,8 @@ My_HAL_GPIO_Init(GPIOC, GPIO_PIN_6 | GPIO_PIN_7); // Initialize pins PC8 & PC9
 //     // My_HAL_GPIO_Init(GPIOA, GPIO_PIN_0);
 //    //HAL_GPIO_WritePin(GPIOC, 1 << 8 ); // Start PC8 high
  My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET); // Start PC8 high
+ My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET); // Start PC8 high
+
 //    // My_HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_7);
    My_HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
 //     HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
