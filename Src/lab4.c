@@ -124,7 +124,7 @@ void USART3_Init(void) {
     USART3->CR1 |= USART_CR1_TE | USART_CR1_RE;
     // Enable RXNE interrupt (Receive Not Empty) for USART3.
     //sec.4.3
-    //USART3->CR1 |= USART_CR1_RXNEIE;
+    USART3->CR1 |= USART_CR1_RXNEIE;
     // 4. Enable the USART peripheral.
     // Set the UE (USART Enable) bit in the Control Register 1.
     USART3->CR1 |= USART_CR1_UE;
@@ -150,180 +150,180 @@ void USART3_Init(void) {
        }
    }
 
-
+//section 4.3
    // Interrupt handler for USART3 reception
-//void USART3_IRQHandler(void) old
-// void USART3_4_IRQHandler(void){
-//     if (USART3->ISR & USART_ISR_RXNE) {
-//         char c = (char)(USART3->RDR & 0xFF);
+//void USART3_IRQHandler(void)
+void USART3_4_IRQHandler(void){
+    if (USART3->ISR & USART_ISR_RXNE) {
+        char c = (char)(USART3->RDR & 0xFF);
 
-//         if (rx_state == WAIT_CMD) {
-//             // Accept only r/g/b (case insensitive)
-//             if (c=='r'||c=='R' || c=='g'||c=='G' || c=='b'||c=='B') {
-//                 rx_cmd   = c;
-//                 rx_state = WAIT_ARG;
-//                 USART3_Transmit("\r\nArg? ");
-//             } else {
-//                 USART3_Transmit("\r\nERR: Expect r/g/b\r\nCmd? ");
-//             }
-//         }
-//         else {  // WAIT_ARG
-//             // Accept only '0','1','2'
-//             if (c=='0'||c=='1'||c=='2') {
-//                 process_command(rx_cmd, c);
-//             } else {
-//                 USART3_Transmit("\r\nERR: Expect 0/1/2\r\nCmd? ");
-//             }
-//             rx_state = WAIT_CMD;
-//         }
-//     }
-// }
-// void process_command(char cmd, char arg)
-// {
-//     if (arg == '0') {
-//         if (cmd=='r'||cmd=='R') LED_Red_Off();
-//         else if (cmd=='g'||cmd=='G') LED_Green_Off();
-//         else /* b/B */                LED_Blue_Off();
-//         USART3_Transmit("\r\nLED OFF\r\nCmd? ");
-//     }
-//     else if (arg == '1') {
-//         if (cmd=='r'||cmd=='R') LED_Red_On();
-//         else if (cmd=='g'||cmd=='G') LED_Green_On();
-//         else /* b/B */                LED_Blue_On();
-//         USART3_Transmit("\r\nLED ON\r\nCmd? ");
-//     }
-//     else {  // arg == '2'
-//         if (cmd=='r'||cmd=='R') Toggle_Red();
-//         else if (cmd=='g'||cmd=='G') Toggle_Green();
-//         else /* b/B */                Toggle_Blue();
-//         USART3_Transmit("\r\nLED TOGGLE\r\nCmd? ");
-//     }
-// }
-
-//section 4.1
-int lab4_main(void)
-{
-    char rx_char;
-
-    /* Initialize LED GPIO pins and USART3 */
-    LED_Init();
-    USART3_GPIO_Config(); // Configure GPIO for USART3
-    USART3_Init();
-
-    while (1)
-    {
-        /* 1. Wait for a character to be received.
-           The RXNE flag in USART3->ISR is set when a byte is available in the Receive Data Register (RDR) */
-        while (!(USART3->ISR & USART_ISR_RXNE))
-        {
-            // Wait until data is received
+        if (rx_state == WAIT_CMD) {
+            // Accept only r/g/b (case insensitive)
+            if (c=='r'||c=='R' || c=='g'||c=='G' || c=='b'||c=='B') {
+                rx_cmd   = c;
+                rx_state = WAIT_ARG;
+                USART3_Transmit("\r\nArg? ");
+            } else {
+                USART3_Transmit("\r\nERR: Expect r/g/b\r\nCmd? ");
+            }
         }
-
-        /* 2. Read the received data.
-           (Note: reading the RDR clears the RXNE flag) */
-        rx_char = (char)(USART3->RDR & 0xFF);
-
-        /* 3. Test the received data and toggle the appropriate LED.
-           If the received character is 'r'/'R', 'g'/'G', or 'b'/'B' toggle the corresponding LED.
-           Otherwise, print an error message via USART3. */
-        switch(rx_char)
-        {
-            case 'r':
-            case 'R':
-                Toggle_Red();
-                break;
-            case 'g':
-            case 'G':
-                Toggle_Green();
-                break;
-            case 'b':
-            case 'B':
-                Toggle_Blue();
-                break;
-            default:
-                USART3_Transmit("Error: Unrecognized command.\r\n");
-                break;
+        else {  // WAIT_ARG
+            // Accept only '0','1','2'
+            if (c=='0'||c=='1'||c=='2') {
+                process_command(rx_cmd, c);
+            } else {
+                USART3_Transmit("\r\nERR: Expect 0/1/2\r\nCmd? ");
+            }
+            rx_state = WAIT_CMD;
         }
     }
 }
+void process_command(char cmd, char arg)
+{
+    if (arg == '0') {
+        if (cmd=='r'||cmd=='R') LED_Red_Off();
+        else if (cmd=='g'||cmd=='G') LED_Green_Off();
+        else /* b/B */                LED_Blue_Off();
+        USART3_Transmit("\r\nLED OFF\r\nCmd? ");
+    }
+    else if (arg == '1') {
+        if (cmd=='r'||cmd=='R') LED_Red_On();
+        else if (cmd=='g'||cmd=='G') LED_Green_On();
+        else /* b/B */                LED_Blue_On();
+        USART3_Transmit("\r\nLED ON\r\nCmd? ");
+    }
+    else {  // arg == '2'
+        if (cmd=='r'||cmd=='R') Toggle_Red();
+        else if (cmd=='g'||cmd=='G') Toggle_Green();
+        else /* b/B */                Toggle_Blue();
+        USART3_Transmit("\r\nLED TOGGLE\r\nCmd? ");
+    }
+}
 
-
-
+//section 4.1
 // int lab4_main(void)
 // {
-//     uint8_t command[2];
-//     uint8_t command_index = 0;
+//     char rx_char;
 
-//     // Initialize peripherals
+//     /* Initialize LED GPIO pins and USART3 */
 //     LED_Init();
-//     USART3_Init();
 //     USART3_GPIO_Config(); // Configure GPIO for USART3
-//     // Enable USART3 interrupt in NVIC
-//     NVIC_EnableIRQ(USART3_4_IRQn);
+//     USART3_Init();
 
-//     // Main loop: process two-character commands
 //     while (1)
 //     {
-//         // If waiting for a new command, prompt the user
-//         // if (command_index == 0)
-//         // {
-//         //     USART3_Transmit("CMD? ");
-//         // }
-        
-//         // Check if new data was received by the interrupt handler
-//         if (rx_flag)
+//         /* 1. Wait for a character to be received.
+//            The RXNE flag in USART3->ISR is set when a byte is available in the Receive Data Register (RDR) */
+//         while (!(USART3->ISR & USART_ISR_RXNE))
 //         {
-//             rx_flag = 0; // Clear flag
-//             command[command_index] = rx_data;
-//             command_index++;
+//             // Wait until data is received
+//         }
 
-//             // Once two characters have been received, process the command
-//             if (command_index == 2)
-//             {
-//                 char color = command[0];
-//                 char op    = command[1];
+//         /* 2. Read the received data.
+//            (Note: reading the RDR clears the RXNE flag) */
+//         rx_char = (char)(USART3->RDR & 0xFF);
 
-//                 // Validate command: first char must be one of r, g, b (case-insensitive)
-//                 // and second char must be between '0' and '2'
-//                 if ((color == 'r' || color == 'R' || color == 'g' || color == 'G' || color == 'b' || color == 'B') &&
-//                     (op >= '0' && op <= '2'))
-//                 {
-//                     // Process command based on LED color and operation
-//                     if (op == '0')
-//                     {
-//                         // Turn LED off
-//                         if (color == 'r' || color == 'R') { LED_Red_Off(); }
-//                         else if (color == 'g' || color == 'G') { LED_Green_Off(); }
-//                         else if (color == 'b' || color == 'B') { LED_Blue_Off(); }
-//                         USART3_Transmit("\r\nCommand recognized: Turn Off LED\r\n");
-//                     }
-//                     else if (op == '1')
-//                     {
-//                         // Turn LED on
-//                         if (color == 'r' || color == 'R') { LED_Red_On(); }
-//                         else if (color == 'g' || color == 'G') { LED_Green_On(); }
-//                         else if (color == 'b' || color == 'B') { LED_Blue_On(); }
-//                         USART3_Transmit("\r\nCommand recognized: Turn On LED\r\n");
-//                     }
-//                     else if (op == '2')
-//                     {
-//                         // Toggle LED
-//                         if (color == 'r' || color == 'R') { Toggle_Red(); }
-//                         else if (color == 'g' || color == 'G') { Toggle_Green(); }
-//                         else if (color == 'b' || color == 'B') { Toggle_Blue(); }
-//                         USART3_Transmit("\r\nCommand recognized: Toggle LED\r\n");
-//                     }
-//                 }
-//                 else
-//                 {
-//                     // Unknown command: print error and restart command processing
-//                     USART3_Transmit("\r\nError: Invalid Command\r\n");
-//                 }
-//                 command_index = 0; // Reset command index for the next command
-//             }
+//         /* 3. Test the received data and toggle the appropriate LED.
+//            If the received character is 'r'/'R', 'g'/'G', or 'b'/'B' toggle the corresponding LED.
+//            Otherwise, print an error message via USART3. */
+//         switch(rx_char)
+//         {
+//             case 'r':
+//             case 'R':
+//                 Toggle_Red();
+//                 break;
+//             case 'g':
+//             case 'G':
+//                 Toggle_Green();
+//                 break;
+//             case 'b':
+//             case 'B':
+//                 Toggle_Blue();
+//                 break;
+//             default:
+//                 USART3_Transmit("Error: Unrecognized command.\r\n");
+//                 break;
 //         }
 //     }
 // }
+
+
+
+int lab4_main(void)
+{
+    uint8_t command[2];
+    uint8_t command_index = 0;
+
+    // Initialize peripherals
+    LED_Init();
+    USART3_Init();
+    USART3_GPIO_Config(); // Configure GPIO for USART3
+    // Enable USART3 interrupt in NVIC
+    NVIC_EnableIRQ(USART3_4_IRQn);
+
+    // Main loop: process two-character commands
+    while (1)
+    {
+        // If waiting for a new command, prompt the user
+        // if (command_index == 0)
+        // {
+        //     USART3_Transmit("CMD? ");
+        // }
+        
+        // Check if new data was received by the interrupt handler
+        if (rx_flag)
+        {
+            rx_flag = 0; // Clear flag
+            command[command_index] = rx_data;
+            command_index++;
+
+            // Once two characters have been received, process the command
+            if (command_index == 2)
+            {
+                char color = command[0];
+                char op    = command[1];
+
+                // Validate command: first char must be one of r, g, b (case-insensitive)
+                // and second char must be between '0' and '2'
+                if ((color == 'r' || color == 'R' || color == 'g' || color == 'G' || color == 'b' || color == 'B') &&
+                    (op >= '0' && op <= '2'))
+                {
+                    // Process command based on LED color and operation
+                    if (op == '0')
+                    {
+                        // Turn LED off
+                        if (color == 'r' || color == 'R') { LED_Red_Off(); }
+                        else if (color == 'g' || color == 'G') { LED_Green_Off(); }
+                        else if (color == 'b' || color == 'B') { LED_Blue_Off(); }
+                        USART3_Transmit("\r\nCommand recognized: Turn Off LED\r\n");
+                    }
+                    else if (op == '1')
+                    {
+                        // Turn LED on
+                        if (color == 'r' || color == 'R') { LED_Red_On(); }
+                        else if (color == 'g' || color == 'G') { LED_Green_On(); }
+                        else if (color == 'b' || color == 'B') { LED_Blue_On(); }
+                        USART3_Transmit("\r\nCommand recognized: Turn On LED\r\n");
+                    }
+                    else if (op == '2')
+                    {
+                        // Toggle LED
+                        if (color == 'r' || color == 'R') { Toggle_Red(); }
+                        else if (color == 'g' || color == 'G') { Toggle_Green(); }
+                        else if (color == 'b' || color == 'B') { Toggle_Blue(); }
+                        USART3_Transmit("\r\nCommand recognized: Toggle LED\r\n");
+                    }
+                }
+                else
+                {
+                    // Unknown command: print error and restart command processing
+                    USART3_Transmit("\r\nError: Invalid Command\r\n");
+                }
+                command_index = 0; // Reset command index for the next command
+            }
+        }
+    }
+}
 
 
 
